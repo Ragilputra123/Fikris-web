@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SUPERADMIN
+}
+
+enum Gender {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum MemberStatus {
+  AKTIF
+  NONAKTIF
+}
+
+enum EventStatus {
+  AKAN_DATANG
+  SELESAI
+}
+
+enum AttendanceStatus {
+  HADIR
+  IZIN
+  TIDAK_HADIR
+}
+
+enum FinanceType {
+  PEMASUKAN
+  PENGELUARAN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id            String        @id @default(cuid())
+  nama          String
+  jenisKelamin  Gender
+  tanggalLahir  DateTime
+  alamat        String
+  noHp          String
+  status        MemberStatus  @default(AKTIF)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  attendance    Attendance[]
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  nama        String
+  tanggal     DateTime
+  lokasi      String
+  deskripsi   String?
+  status      EventStatus   @default(AKAN_DATANG)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  attendance  Attendance[]
+}
+
+model Attendance {
+  id        String            @id @default(cuid())
+  memberId  String
+  eventId   String
+  status    AttendanceStatus  @default(HADIR)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  member    Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, eventId])
+}
+
+model Finance {
+  id         String      @id @default(cuid())
+  tanggal    DateTime
+  jenis      FinanceType
+  kategori   String
+  nominal    Int         // simpan dalam rupiah
+  keterangan String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
